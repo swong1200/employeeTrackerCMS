@@ -76,7 +76,7 @@ function start() {
         connection.end();
       }
     });
-};
+}
 
 function addDepartment() {
   inquirer
@@ -85,13 +85,13 @@ function addDepartment() {
         name: "deptName",
         type: "input",
         message: "What is the name of the department you would like to add?",
-      }
+      },
     ])
     .then(function (answer) {
       connection.query(
         "INSERT INTO department SET ?",
         {
-          name: answer.deptName
+          name: answer.deptName,
         },
         function (err) {
           if (err) throw err;
@@ -100,7 +100,7 @@ function addDepartment() {
         }
       );
     });
-};
+}
 
 function viewDepartments() {
   connection.query("SELECT * FROM department", function (err, result) {
@@ -108,56 +108,65 @@ function viewDepartments() {
     console.table(result);
     start();
   });
-};
+}
 
 function addRole() {
-    connection.query("SELECT * FROM department", function(err, result) {
-        if (err) throw err;
+  connection.query("SELECT * FROM department", function (err, result) {
+    if (err) throw err;
     inquirer
-    .prompt([
+      .prompt([
         {
-            name: "title",
-            type: "input",
-            message: "What role would you like to add?"
+          name: "title",
+          type: "input",
+          message: "What role would you like to add?",
         },
         {
-            name: "salary",
-            type: "input",
-            message: "What is the salary for this role?"
+          name: "salary",
+          type: "input",
+          message: "What is the salary for this role?",
         },
         {
-            name: "deptID",
-            type: "list",
-            message: "Which department is this role for?",
-            choices: function() {
-                let choiceArray = [];
-                for (let index = 0; index < result.length; index++) {
-                    choiceArray.push(result[index].name);
-                }
-                return choiceArray;
+          name: "deptID",
+          type: "list",
+          message: "Which department is this role for?",
+          choices: function () {
+            let choiceArray = [];
+            for (let index = 0; index < result.length; index++) {
+              choiceArray.push(result[index].name);
             }
-        }
-    ])
-    .then(function(answer) {
+            return choiceArray;
+          },
+        },
+      ])
+      .then(function (answer) {
         console.log(answer);
         let deptChoice;
         for (let index = 0; index < result.length; index++) {
-            if (result[index].name === answer.deptID) {
-                deptChoice = result[index].id;
-            }
+          if (result[index].name === answer.deptID) {
+            deptChoice = result[index].id;
+          }
         }
-        connection.query("INSERT INTO role SET ?",
-        {
+        connection.query(
+          "INSERT INTO role SET ?",
+          {
             title: answer.title,
             salary: answer.salary,
-            department_id: deptChoice
-        },
-        function (err) {
+            department_id: deptChoice,
+          },
+          function (err) {
             if (err) throw err;
             console.log(deptChoice);
             start();
           }
         );
-    });
-    });
-};
+      });
+  });
+}
+
+function viewRoles() {
+  connection.query("SELECT * FROM role", function (err, result) {
+    if (err) throw err;
+    console.table(result);
+    start();
+  });
+}
