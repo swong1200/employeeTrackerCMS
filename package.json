@@ -1,0 +1,24 @@
+{
+  "name": "employeetrackercms",
+  "version": "1.0.0",
+  "description": "A CMS application to track employees within a company.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swong1200/employeeTrackerCMS.git"
+  },
+  "author": "Stuart Wong",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/swong1200/employeeTrackerCMS/issues"
+  },
+  "homepage": "https://github.com/swong1200/employeeTrackerCMS#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  }
+}
