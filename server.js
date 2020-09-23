@@ -47,6 +47,7 @@ function start() {
     })
     .then(function (answer) {
       if (answer.initialChoice === "View All Employees") {
+        //   DONE
         viewAllEmployees();
       } else if (answer.initialChoice === "View All Employees by Department") {
         viewEmployeesByDept();
@@ -85,7 +86,7 @@ function start() {
 }
 
 function viewAllEmployees() {
-    connection.query("SELECT * FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id", function(err, result) {
+    connection.query("SELECT employee.id, employee.first_name, employee.last_name, RD.title, RD.department, RD.salary FROM employee LEFT JOIN (SELECT R.*, D.name AS department FROM role R LEFT JOIN department D ON R.department_id = D.id) AS RD ON employee.role_id = RD.id", function(err, result) {
         if (err) throw err;
         console.table(result);
         start();
