@@ -197,8 +197,10 @@ function viewRoles() {
 }
 
 function addEmployee() {
-  connection.query("SELECT * FROM role", function (err, result) {
+  connection.query("SELECT * FROM role; SELECT id, first_name, last_name FROM employee", [1, 2], function (err, result) {
     if (err) throw err;
+    let roleList = result[0];
+    let manList = result[1];
     inquirer
       .prompt([
         {
@@ -215,29 +217,52 @@ function addEmployee() {
           name: "roleID",
           type: "list",
           message: "What is the Employee's role?",
-          choices: function () {
+          choices: function() {
             let roleChoiceArray = [];
-            for (let index = 0; index < result.length; index++) {
-              roleChoiceArray.push(result[index].title);
+            for (let index = 0; index < roleList.length; index++) {
+              roleChoiceArray.push(roleList[index].title);
             }
             return roleChoiceArray;
-          },
+          }
         },
+        {
+            name: "manID",
+            type: "list",
+            message: "Who will be the Employee's Manager?",
+            choices: function() {
+                let manChoiceArray = ["None"];
+                for (let index = 0; index < manList.length; index++) {
+                    manChoiceArray.push(manList[index].first_name + " " + manList[index].last_name);
+                }
+                return manChoiceArray;
+            }
+        }
       ])
       .then(function (answer) {
         console.log(answer);
         let roleChoice;
-        for (let index = 0; index < result.length; index++) {
-          if (result[index].title === answer.roleID) {
-            roleChoice = result[index].id;
+        for (let index = 0; index < roleList.length; index++) {
+          if (roleList[index].title === answer.roleID) {
+            roleChoice = roleList[index].id;
           }
         }
+        console.log(roleChoice);
+        let manChoice;
+        for (let index = 0; index < manList.length; index++) {
+            if (manList[index].first_name + " " + manList[index].last_name === answer.manID) {
+                manChoice = manList[index].id;
+            } else {
+                manChoice = null;
+            }
+        }
+        console.log(manChoice);
         connection.query(
           "INSERT INTO employee SET ?",
           {
             first_name: answer.firstName,
             last_name: answer.lastName,
             role_id: roleChoice,
+            manager_id: manChoice
           },
           function (err) {
             if (err) throw err;
