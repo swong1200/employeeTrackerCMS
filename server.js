@@ -90,7 +90,7 @@ function start() {
 
 function viewAllEmployees() {
   connection.query(
-    "SELECT employee.id, employee.first_name, employee.last_name, RD.title, RD.department, RD.salary FROM employee LEFT JOIN (SELECT R.*, D.name AS department FROM role R LEFT JOIN department D ON R.department_id = D.id) AS RD ON employee.role_id = RD.id",
+    "SELECT EM.id, EM.first_name, EM.last_name, RD.title, RD.department, RD.salary, EM.manager FROM (SELECT E.*, CONCAT(M.first_name, ' ', M.last_name) AS manager FROM employee AS E LEFT JOIN employee AS M ON E.manager_id = M.id) AS EM LEFT JOIN (SELECT R.*, D.name AS department FROM role R LEFT JOIN department D ON R.department_id = D.id) AS RD ON EM.role_id = RD.id",
     function (err, result) {
       if (err) throw err;
       console.table(result);
@@ -197,105 +197,90 @@ function viewRoles() {
 }
 
 function addEmployee() {
-  connection.query("SELECT * FROM role; SELECT id, first_name, last_name FROM employee", [1, 2], function (err, result) {
-    if (err) throw err;
-    let roleList = result[0];
-    let manList = result[1];
-    inquirer
-      .prompt([
-        {
-          name: "firstName",
-          type: "input",
-          message: "What is the Employee's first name?",
-        },
-        {
-          name: "lastName",
-          type: "input",
-          message: "What is the Employee's last name?",
-        },
-        {
-          name: "roleID",
-          type: "list",
-          message: "What is the Employee's role?",
-          choices: function() {
-            let roleChoiceArray = [];
-            for (let index = 0; index < roleList.length; index++) {
-              roleChoiceArray.push(roleList[index].title);
-            }
-            return roleChoiceArray;
-          }
-        },
-        {
+  connection.query(
+    "SELECT * FROM role; SELECT id, first_name, last_name FROM employee",
+    [1, 2],
+    function (err, result) {
+      if (err) throw err;
+      let roleList = result[0];
+      let manList = result[1];
+      inquirer
+        .prompt([
+          {
+            name: "firstName",
+            type: "input",
+            message: "What is the Employee's first name?",
+          },
+          {
+            name: "lastName",
+            type: "input",
+            message: "What is the Employee's last name?",
+          },
+          {
+            name: "roleID",
+            type: "list",
+            message: "What is the Employee's role?",
+            choices: function () {
+              let roleChoiceArray = [];
+              for (let index = 0; index < roleList.length; index++) {
+                roleChoiceArray.push(roleList[index].title);
+              }
+              return roleChoiceArray;
+            },
+          },
+          {
             name: "manID",
             type: "list",
             message: "Who will be the Employee's Manager?",
-            choices: function() {
-                let manChoiceArray = ["None"];
-                for (let index = 0; index < manList.length; index++) {
-                    manChoiceArray.push(manList[index].first_name + " " + manList[index].last_name);
-                }
-                return manChoiceArray;
-            }
-        }
-      ])
-      .then(function (answer) {
-        console.log(answer);
-        let roleChoice;
-        for (let index = 0; index < roleList.length; index++) {
-          if (roleList[index].title === answer.roleID) {
-            roleChoice = roleList[index].id;
-          }
-        }
-        console.log(roleChoice);
-        let manChoice;
-        for (let index = 0; index < manList.length; index++) {
-            if (manList[index].first_name + " " + manList[index].last_name === answer.manID) {
-                manChoice = manList[index].id;
-            } else {
-                manChoice = null;
-            }
-        }
-        console.log(manChoice);
-        connection.query(
-          "INSERT INTO employee SET ?",
-          {
-            first_name: answer.firstName,
-            last_name: answer.lastName,
-            role_id: roleChoice,
-            manager_id: manChoice
+            choices: function () {
+              let manChoiceArray = ["None"];
+              for (let index = 0; index < manList.length; index++) {
+                manChoiceArray.push(
+                  manList[index].first_name + " " + manList[index].last_name
+                );
+              }
+              return manChoiceArray;
+            },
           },
-          function (err) {
-            if (err) throw err;
-            start();
+        ])
+        .then(function (answer) {
+          console.log(answer);
+          let roleChoice;
+          for (let index = 0; index < roleList.length; index++) {
+            if (roleList[index].title === answer.roleID) {
+              roleChoice = roleList[index].id;
+            }
           }
-        );
-      });
-  });
+          console.log(roleChoice);
+          let manChoice;
+          for (let index = 0; index < manList.length; index++) {
+            if (
+              manList[index].first_name + " " + manList[index].last_name ===
+              answer.manID
+            ) {
+              manChoice = manList[index].id;
+            } else {
+              manChoice = null;
+            }
+          }
+          console.log(manChoice);
+          connection.query(
+            "INSERT INTO employee SET ?",
+            {
+              first_name: answer.firstName,
+              last_name: answer.lastName,
+              role_id: roleChoice,
+              manager_id: manChoice,
+            },
+            function (err) {
+              if (err) throw err;
+              start();
+            }
+          );
+        });
+    }
+  );
 }
-
-//   function whichMgr() {
-//     connection.query("SELECT * FROM employee", function (err, result) {
-//         if (err) throw err;
-//         inquirer
-//           .prompt([
-//             {
-//               name: "mgrID",
-//               type: "list",
-//               message: "Who will the Employee's manager be?",
-//               choices: function() {
-//                 let mgrChoiceArray = [];
-//                 for (let index = 0; index < result.length; index++) {
-//                   mgrChoiceArray.push(result[index].title);
-//                 }
-//                 return mgrChoiceArray;
-//               }
-//             }
-//         ])
-//         .then(function(answer) {
-//             console.log(answer)
-//         })
-//     });
-//   }
 
 function updateEmployeeRole() {
   connection.query(
@@ -353,8 +338,11 @@ function updateEmployeeRole() {
             }
           }
           console.log(roleChoice);
-          const query = "UPDATE employee SET ? WHERE ?"
-          connection.query(query, [{role_id: roleChoice}, {id: empChoice}], function (err) {
+          const query = "UPDATE employee SET ? WHERE ?";
+          connection.query(
+            query,
+            [{ role_id: roleChoice }, { id: empChoice }],
+            function (err) {
               if (err) throw err;
               start();
             }
