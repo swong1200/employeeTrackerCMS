@@ -43,49 +43,37 @@ function start() {
         "Add Role",
         "Remove Role",
         "Add Department",
-        "View Departments",
+        "View All Departments",
         "Remove Department",
         "Quit",
       ],
     })
     .then(function (answer) {
       if (answer.initialChoice === "View All Employees") {
-        //   DONE
         viewAllEmployees();
       } else if (answer.initialChoice === "View All Employees by Department") {
-        //   DONE
         viewEmployeesByDept();
       } else if (answer.initialChoice === "View All Employees by Manager") {
         viewEmployeesByMgr();
       } else if (answer.initialChoice === "Add Employee") {
-        //   DONE
         addEmployee();
       } else if (answer.initialChoice === "Remove Employee") {
-        //   DONE
         removeEmployee();
       } else if (answer.initialChoice === "Update Employee Role") {
-        //   DONE
         updateEmployeeRole();
       } else if (answer.initialChoice === "Update Employee Manager") {
-        //   DONE
         updateEmployeeMgr();
       } else if (answer.initialChoice === "View All Roles") {
-        //   DONE
         viewRoles();
       } else if (answer.initialChoice === "Add Role") {
-        //   DONE
         addRole();
       } else if (answer.initialChoice === "Remove Role") {
-        //   DONE
         removeRole();
       } else if (answer.initialChoice === "Add Department") {
-        //   DONE
         addDepartment();
       } else if (answer.initialChoice === "View All Departments") {
-        //   DONE
         viewDepartments();
       } else if (answer.initialChoice === "Remove Department") {
-        //   DONE
         removeDepartment();
       } else {
         connection.end();
@@ -129,12 +117,56 @@ function viewEmployeesByDept() {
           },
         ])
         .then(function (answer) {
-            let viewDept = empList.filter((employee) => {
-                    return employee.department === answer.deptChoice
-            })
-            console.table(viewDept)
+          let viewDept = empList.filter((employee) => {
+            return employee.department === answer.deptChoice;
+          });
+          console.table(viewDept);
+          start();
+        });
+    }
+  );
+}
+
+function viewEmployeesByMgr() {
+  connection.query(
+    "SELECT E.id, CONCAT(M.first_name, ' ', M.last_name) AS name FROM employee E JOIN employee M ON E.manager_id = M.id; SELECT EM.id, EM.first_name, EM.last_name, RD.title, RD.department, RD.salary, EM.manager FROM (SELECT E.*, CONCAT(M.first_name, ' ', M.last_name) AS manager FROM employee AS E LEFT JOIN employee AS M ON E.manager_id = M.id) AS EM LEFT JOIN (SELECT R.*, D.name AS department FROM role R LEFT JOIN department D ON R.department_id = D.id) AS RD ON EM.role_id = RD.id",
+    [1, 2],
+    function (err, result) {
+      if (err) throw err;
+      let manList = result[0];
+      let empList = result[1];
+      inquirer
+        .prompt([
+          {
+            name: "manChoice",
+            type: "list",
+            message: "Which Manager would you like to see the Employees for?",
+            choices: function () {
+              let manChoiceArray = ["None"];
+              manList.forEach((manager) => {
+                if (manChoiceArray.indexOf(manager.name) === -1) {
+                  manChoiceArray.push(manager.name);
+                }
+              });
+              return manChoiceArray;
+            },
+          },
+        ])
+        .then(function (answer) {
+          if (answer.manChoice === "None") {
+            let viewMgr = empList.filter((employee) => {
+              return employee.manager === null;
+            });
+            console.table(viewMgr);
             start();
-        })
+          } else {
+            let viewMgr = empList.filter((employee) => {
+              return employee.manager === answer.manChoice;
+            });
+            console.table(viewMgr);
+            start();
+          }
+        });
     }
   );
 }
@@ -156,7 +188,6 @@ function addDepartment() {
         },
         function (err) {
           if (err) throw err;
-          console.log(answer.deptName);
           start();
         }
       );
@@ -239,7 +270,6 @@ function addRole() {
         },
       ])
       .then(function (answer) {
-        console.log(answer);
         let deptChoice;
         for (let index = 0; index < result.length; index++) {
           if (result[index].name === answer.deptID) {
@@ -255,7 +285,6 @@ function addRole() {
           },
           function (err) {
             if (err) throw err;
-            console.log(deptChoice);
             start();
           }
         );
@@ -296,7 +325,6 @@ function removeRole() {
             roleChoice = result[index].id;
           }
         }
-        console.log(roleChoice);
         connection.query(
           "DELETE FROM role WHERE ?",
           {
@@ -359,14 +387,12 @@ function addEmployee() {
           },
         ])
         .then(function (answer) {
-          console.log(answer);
           let roleChoice;
           for (let index = 0; index < roleList.length; index++) {
             if (roleList[index].title === answer.roleID) {
               roleChoice = roleList[index].id;
             }
           }
-          console.log(roleChoice);
           let manChoice;
           for (let index = 0; index < manList.length; index++) {
             if (
@@ -378,7 +404,6 @@ function addEmployee() {
               manChoice = null;
             }
           }
-          console.log(manChoice);
           connection.query(
             "INSERT INTO employee SET ?",
             {
@@ -435,7 +460,6 @@ function updateEmployeeRole() {
           },
         ])
         .then(function (answer) {
-          console.log(answer);
           let empChoice;
           for (let index = 0; index < empList.length; index++) {
             if (
@@ -445,14 +469,12 @@ function updateEmployeeRole() {
               empChoice = empList[index].id;
             }
           }
-          console.log(empChoice);
           let roleChoice;
           for (let index = 0; index < roleList.length; index++) {
             if (roleList[index].title === answer.role) {
               roleChoice = roleList[index].id;
             }
           }
-          console.log(roleChoice);
           const query = "UPDATE employee SET ? WHERE ?";
           connection.query(
             query,
@@ -502,7 +524,6 @@ function updateEmployeeMgr() {
         },
       ])
       .then(function (answer) {
-        console.log(answer);
         let empChoice;
         for (let index = 0; index < result.length; index++) {
           if (
@@ -512,7 +533,6 @@ function updateEmployeeMgr() {
             empChoice = result[index].id;
           }
         }
-        console.log(empChoice);
         let manChoice;
         for (let index = 0; index < result.length; index++) {
           if (
@@ -522,7 +542,6 @@ function updateEmployeeMgr() {
             manChoice = result[index].id;
           }
         }
-        console.log(manChoice);
         const query = "UPDATE employee SET ? WHERE ?";
         connection.query(
           query,
@@ -556,7 +575,6 @@ function removeEmployee() {
         },
       ])
       .then(function (answer) {
-        console.log(answer);
         let empChoice;
         for (let index = 0; index < result.length; index++) {
           if (
@@ -566,7 +584,6 @@ function removeEmployee() {
             empChoice = result[index].id;
           }
         }
-        console.log(empChoice);
         connection.query(
           "DELETE FROM employee WHERE ?",
           {
