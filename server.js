@@ -77,10 +77,11 @@ function start() {
       } else if (answer.initialChoice === "Add Department") {
         //   DONE
         addDepartment();
-      } else if (answer.initialChoice === "View Departments") {
+      } else if (answer.initialChoice === "View All Departments") {
         //   DONE
         viewDepartments();
       } else if (answer.initialChoice === "Remove Department") {
+        //   DONE
         removeDepartment();
       } else {
         connection.end();
@@ -127,15 +128,12 @@ function viewEmployeesByDept() {
           console.log(answer);
           function filterNames(arr, query) {
             if (arr.department == query) {
-                arr.filter()
+              arr.filter();
             }
-            
           }
-          
-          console.table(filterNames(empList, answer.deptChoice))
-        
+
+          console.table(filterNames(empList, answer.deptChoice));
         });
-        
     }
   );
 }
@@ -174,39 +172,40 @@ function viewDepartments() {
 
 function removeDepartment() {
   connection.query("SELECT * FROM department", function (err, result) {
-      if (err) throw err;
-      inquirer
+    if (err) throw err;
+    inquirer
       .prompt([
-          {
-              name: "deptName",
-              type: "list",
-              message: "Which department would you like to remove?",
-              choices: function () {
-                let deptChoiceArray = [];
-                for (let index = 0; index < result.length; index++) {
-                  deptChoiceArray.push(result[index].name);
-                }
-                return deptChoiceArray;
-              }
-          }
+        {
+          name: "deptName",
+          type: "list",
+          message: "Which Department would you like to remove?",
+          choices: function () {
+            let deptChoiceArray = [];
+            for (let index = 0; index < result.length; index++) {
+              deptChoiceArray.push(result[index].name);
+            }
+            return deptChoiceArray;
+          },
+        },
       ])
-      .then(function(answer) {
+      .then(function (answer) {
         let deptChoice;
         for (let index = 0; index < result.length; index++) {
           if (result[index].name === answer.deptName) {
             deptChoice = result[index].id;
           }
         }
-          connection.query("DELETE FROM department WHERE ?",
+        connection.query(
+          "DELETE FROM department WHERE ?",
           {
-            id: deptChoice
+            id: deptChoice,
           },
-          function(err){
-              if (err) throw err;
-              start();
+          function (err) {
+            if (err) throw err;
+            start();
           }
-          )
-      })
+        );
+      });
   });
 }
 
@@ -268,6 +267,46 @@ function viewRoles() {
     if (err) throw err;
     console.table(result);
     start();
+  });
+}
+
+function removeRole() {
+  connection.query("SELECT * FROM role", function (err, result) {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "roleName",
+          type: "list",
+          message: "Which Role would you like to remove?",
+          choices: function () {
+            let roleChoiceArray = [];
+            for (let index = 0; index < result.length; index++) {
+              roleChoiceArray.push(result[index].title);
+            }
+            return roleChoiceArray;
+          },
+        },
+      ])
+      .then(function (answer) {
+        let roleChoice;
+        for (let index = 0; index < result.length; index++) {
+          if (result[index].title === answer.roleName) {
+            roleChoice = result[index].id;
+          }
+        }
+        console.log(roleChoice)
+        connection.query(
+          "DELETE FROM role WHERE ?",
+          {
+            id: roleChoice,
+          },
+          function (err) {
+            if (err) throw err;
+            start();
+          }
+        );
+      });
   });
 }
 
