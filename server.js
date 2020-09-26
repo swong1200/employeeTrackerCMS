@@ -53,6 +53,7 @@ function start() {
         //   DONE
         viewAllEmployees();
       } else if (answer.initialChoice === "View All Employees by Department") {
+        //   DONE
         viewEmployeesByDept();
       } else if (answer.initialChoice === "View All Employees by Manager") {
         viewEmployeesByMgr();
@@ -60,11 +61,13 @@ function start() {
         //   DONE
         addEmployee();
       } else if (answer.initialChoice === "Remove Employee") {
+        //   DONE
         removeEmployee();
       } else if (answer.initialChoice === "Update Employee Role") {
         //   DONE
         updateEmployeeRole();
       } else if (answer.initialChoice === "Update Employee Manager") {
+        //   DONE
         updateEmployeeMgr();
       } else if (answer.initialChoice === "View All Roles") {
         //   DONE
@@ -126,15 +129,12 @@ function viewEmployeesByDept() {
           },
         ])
         .then(function (answer) {
-          console.log(answer);
-          function filterNames(arr, query) {
-            if (arr.department == query) {
-              arr.filter();
-            }
-          }
-
-          console.table(filterNames(empList, answer.deptChoice));
-        });
+            let viewDept = empList.filter((employee) => {
+                    return employee.department === answer.deptChoice
+            })
+            console.table(viewDept)
+            start();
+        })
     }
   );
 }
@@ -467,6 +467,75 @@ function updateEmployeeRole() {
   );
 }
 
+function updateEmployeeMgr() {
+  connection.query("SELECT * FROM employee", function (err, result) {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          name: "empName",
+          type: "list",
+          message: "Which Employee would you like to update?",
+          choices: function () {
+            let empChoiceArray = [];
+            for (let index = 0; index < result.length; index++) {
+              empChoiceArray.push(
+                result[index].first_name + " " + result[index].last_name
+              );
+            }
+            return empChoiceArray;
+          },
+        },
+        {
+          name: "manName",
+          type: "list",
+          message: "Who will be the Employee's Manager?",
+          choices: function () {
+            let manChoiceArray = ["None"];
+            for (let index = 0; index < result.length; index++) {
+              manChoiceArray.push(
+                result[index].first_name + " " + result[index].last_name
+              );
+            }
+            return manChoiceArray;
+          },
+        },
+      ])
+      .then(function (answer) {
+        console.log(answer);
+        let empChoice;
+        for (let index = 0; index < result.length; index++) {
+          if (
+            result[index].first_name + " " + result[index].last_name ===
+            answer.empName
+          ) {
+            empChoice = result[index].id;
+          }
+        }
+        console.log(empChoice);
+        let manChoice;
+        for (let index = 0; index < result.length; index++) {
+          if (
+            result[index].first_name + " " + result[index].last_name ===
+            answer.manName
+          ) {
+            manChoice = result[index].id;
+          }
+        }
+        console.log(manChoice);
+        const query = "UPDATE employee SET ? WHERE ?";
+        connection.query(
+          query,
+          [{ manager_id: manChoice }, { id: empChoice }],
+          function (err) {
+            if (err) throw err;
+            start();
+          }
+        );
+      });
+  });
+}
+
 function removeEmployee() {
   connection.query("SELECT * FROM employee", function (err, result) {
     inquirer
@@ -497,16 +566,17 @@ function removeEmployee() {
             empChoice = result[index].id;
           }
         }
-        console.log(empChoice)
-        connection.query("DELETE FROM employee WHERE ?", 
-        {
-            id: empChoice
-        },
-        function(err) {
+        console.log(empChoice);
+        connection.query(
+          "DELETE FROM employee WHERE ?",
+          {
+            id: empChoice,
+          },
+          function (err) {
             if (err) throw err;
             start();
-        }
-        )
+          }
+        );
       });
   });
 }
