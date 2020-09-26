@@ -99,6 +99,47 @@ function viewAllEmployees() {
   );
 }
 
+function viewEmployeesByDept() {
+  connection.query(
+    "SELECT * FROM department; SELECT EM.id, EM.first_name, EM.last_name, RD.title, RD.department, RD.salary, EM.manager FROM (SELECT E.*, CONCAT(M.first_name, ' ', M.last_name) AS manager FROM employee AS E LEFT JOIN employee AS M ON E.manager_id = M.id) AS EM LEFT JOIN (SELECT R.*, D.name AS department FROM role R LEFT JOIN department D ON R.department_id = D.id) AS RD ON EM.role_id = RD.id",
+    [1, 2],
+    function (err, result) {
+      if (err) throw err;
+      let depList = result[0];
+      let empList = result[1];
+      inquirer
+        .prompt([
+          {
+            name: "deptChoice",
+            type: "list",
+            message:
+              "Which Department would you like to see the Employees for?",
+            choices: function () {
+              let deptChoiceArray = [];
+              for (let index = 0; index < depList.length; index++) {
+                deptChoiceArray.push(depList[index].name);
+              }
+              return deptChoiceArray;
+            },
+          },
+        ])
+        .then(function (answer) {
+          console.log(answer);
+          function filterNames(arr, query) {
+            if (arr.department == query) {
+                arr.filter()
+            }
+            
+          }
+          
+          console.table(filterNames(empList, answer.deptChoice))
+        
+        });
+        
+    }
+  );
+}
+
 function addDepartment() {
   inquirer
     .prompt([
@@ -132,7 +173,41 @@ function viewDepartments() {
 }
 
 function removeDepartment() {
-  connection.query("");
+  connection.query("SELECT * FROM department", function (err, result) {
+      if (err) throw err;
+      inquirer
+      .prompt([
+          {
+              name: "deptName",
+              type: "list",
+              message: "Which department would you like to remove?",
+              choices: function () {
+                let deptChoiceArray = [];
+                for (let index = 0; index < result.length; index++) {
+                  deptChoiceArray.push(result[index].name);
+                }
+                return deptChoiceArray;
+              }
+          }
+      ])
+      .then(function(answer) {
+        let deptChoice;
+        for (let index = 0; index < result.length; index++) {
+          if (result[index].name === answer.deptName) {
+            deptChoice = result[index].id;
+          }
+        }
+          connection.query("DELETE FROM department WHERE ?",
+          {
+            id: deptChoice
+          },
+          function(err){
+              if (err) throw err;
+              start();
+          }
+          )
+      })
+  });
 }
 
 function addRole() {
