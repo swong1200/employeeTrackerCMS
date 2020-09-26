@@ -73,6 +73,7 @@ function start() {
         //   DONE
         addRole();
       } else if (answer.initialChoice === "Remove Role") {
+        //   DONE
         removeRole();
       } else if (answer.initialChoice === "Add Department") {
         //   DONE
@@ -295,7 +296,7 @@ function removeRole() {
             roleChoice = result[index].id;
           }
         }
-        console.log(roleChoice)
+        console.log(roleChoice);
         connection.query(
           "DELETE FROM role WHERE ?",
           {
@@ -464,4 +465,48 @@ function updateEmployeeRole() {
         });
     }
   );
+}
+
+function removeEmployee() {
+  connection.query("SELECT * FROM employee", function (err, result) {
+    inquirer
+      .prompt([
+        {
+          name: "empName",
+          type: "list",
+          message: "Which Employee would you like to remove?",
+          choices: function () {
+            let empChoiceArray = [];
+            for (let index = 0; index < result.length; index++) {
+              empChoiceArray.push(
+                result[index].first_name + " " + result[index].last_name
+              );
+            }
+            return empChoiceArray;
+          },
+        },
+      ])
+      .then(function (answer) {
+        console.log(answer);
+        let empChoice;
+        for (let index = 0; index < result.length; index++) {
+          if (
+            result[index].first_name + " " + result[index].last_name ===
+            answer.empName
+          ) {
+            empChoice = result[index].id;
+          }
+        }
+        console.log(empChoice)
+        connection.query("DELETE FROM employee WHERE ?", 
+        {
+            id: empChoice
+        },
+        function(err) {
+            if (err) throw err;
+            start();
+        }
+        )
+      });
+  });
 }
