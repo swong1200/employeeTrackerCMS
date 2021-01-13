@@ -19,7 +19,7 @@ This is a CLI application to track all the employees within a company.  You can 
 
 -[Screenshot](#screenshot)
 ## Installation
-npm i mysql, npm i inquirer, npm i console.table
+Clone the repo then run npm install.  npm start will begin the app.
 ## Usage
 This is a basic application that works in the command line only.
 ## License
