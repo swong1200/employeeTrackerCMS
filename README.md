@@ -19,7 +19,7 @@ This is a CLI application to track all the employees within a company.  You can 
 
 -[Screenshot](#screenshot)
 ## Installation
-Clone the repo then run npm install.  npm start will begin the app.
+Clone the repo then run npm install.  Add your password for your MySQL database to server.js.  "node server.js" will begin the app.
 ## Usage
 This is a basic application that works in the command line only.
 ## License
